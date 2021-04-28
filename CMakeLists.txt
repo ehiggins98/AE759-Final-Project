@@ -14,7 +14,7 @@ list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 add_library(ArduCopterIRLockPlugin SHARED src/ArduCopterIRLockPlugin.cpp)
 target_link_libraries(ArduCopterIRLockPlugin ${GAZEBO_LIBRARIES})
 
-add_library(FinalProjectPlugin SHARED src/FinalProjectPlugin.cpp)
+add_library(FinalProjectPlugin SHARED src/FinalProjectPlugin/FinalProjectPlugin.cpp)
 target_link_libraries(FinalProjectPlugin ${GAZEBO_LIBRARIES})
 
 install(TARGETS ArduCopterIRLockPlugin DESTINATION ${GAZEBO_PLUGIN_PATH})
