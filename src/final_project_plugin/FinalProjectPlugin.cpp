@@ -4,6 +4,7 @@
 #include <ignition/math/Vector3.hh>
 #include <gazebo/sensors/sensors.hh>
 #include <gazebo/transport/Subscriber.hh>
+#include "./Motors.cpp"
 
 namespace gazebo
 {
@@ -20,6 +21,13 @@ namespace gazebo
             this->updateConnection = event::Events::ConnectWorldUpdateBegin(
                 std::bind(&FinalProjectPlugin::OnUpdate, this));
 
+            LoadSensors(_sdf);
+
+            LoadControl(_parent, _sdf->GetElement("control"));
+        }
+
+        void LoadSensors(sdf::ElementPtr _sdf)
+        {
             std::string wirelessName = _sdf->Get("wirelessName", static_cast<std::string>("wireless_sensor")).first;
             std::string imuName = _sdf->Get("imuName", static_cast<std::string>("imu_sensor")).first;
 
@@ -51,8 +59,29 @@ namespace gazebo
             }
         }
 
+        void LoadControl(physics::ModelPtr model, sdf::ElementPtr controlSdf)
+        {
+            while (controlSdf)
+            {
+                Control control;
+                control.LoadSdf(model, controlSdf);
+                controls.push_back(control);
+                controlSdf = controlSdf->GetNextElement("control");
+            }
+        }
+
         void OnUpdate()
         {
+            common::Time curTime = model->GetWorld()->SimTime();
+            if (curTime > lastUpdateTime)
+            {
+                for (std::vector<Control>::iterator itr = controls.begin(), end = controls.end(); itr != end; itr++)
+                {
+                    itr->ApplyCommand(1, (curTime - lastUpdateTime).Double());
+                }
+            }
+
+            lastUpdateTime = curTime;
         }
 
         void ReceiveWirelessData(ConstWirelessNodesPtr &_msg)
@@ -68,6 +97,10 @@ namespace gazebo
         sensors::WirelessReceiverPtr wireless;
         transport::NodePtr wirelessNode;
         transport::SubscriberPtr subscriber;
+
+        std::vector<Control> controls;
+
+        common::Time lastUpdateTime;
     };
 
     // Register this plugin with the simulator
