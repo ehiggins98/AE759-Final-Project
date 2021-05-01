@@ -1,7 +1,9 @@
 <?xml version='1.0'?>
 <sdf version="1.6" xmlns:xacro='http://ros.org/wiki/xacro'>
   <model name="wireless_transmitter">
+    <static>1</static>
     <link name="transmitter_link">
+      <gravity>0</gravity>
       <inertial>
         <mass>0.15</mass>
         <inertia>
@@ -30,7 +32,6 @@
 
       <sensor name="wireless_transmitter" type="wireless_transmitter">
         <transceiver>
-          <essid>testing</essid>
           <power>100</power>
         </transceiver>
       </sensor>

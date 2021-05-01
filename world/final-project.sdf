@@ -206,6 +206,34 @@
       <pose frame=''>-0.276098 -9.481944 0.023266 0 0 0</pose>
   	</model>
 
+    <model name='wireless_transmitter_1'>
+      <include>
+        <uri>model://wireless_transmitter</uri>
+      </include>
+      <pose>6.85 10.3 5 0 0 0</pose>
+    </model>
+
+    <model name='wireless_transmitter_2'>
+      <include>
+        <uri>model://wireless_transmitter</uri>
+      </include>
+      <pose>6.85 -10.3 5 0 0 0</pose>
+    </model>
+
+    <model name='wireless_transmitter_3'>
+      <include>
+        <uri>model://wireless_transmitter</uri>
+      </include>
+      <pose>-6.85 -10.3 5 0 0 0</pose>
+    </model>
+
+    <model name='wireless_transmitter_4'>
+      <include>
+        <uri>model://wireless_transmitter</uri>
+      </include>
+      <pose>-6.85 10.3 5 0 0 0</pose>
+    </model>
+
     <light name="Warehouse_CeilingLight_003" type="point">
       <pose frame="">0 0 9 0 0 0</pose>
       <diffuse>0.5 0.5 0.5 1</diffuse>
