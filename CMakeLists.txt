@@ -2,6 +2,7 @@ project(ae759_final_project)
 
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(gazebo REQUIRED)
 include_directories(
         ${PROJECT_SOURCE_DIR}
@@ -22,6 +23,7 @@ target_link_libraries(FinalProjectPlugin Motors)
 target_link_libraries(FinalProjectPlugin SimWirelessReceiver)
 target_link_libraries(Motors ${GAZEBO_LIBRARIES})
 target_link_libraries(SimWirelessReceiver ${GAZEBO_LIBRARIES})
+target_link_libraries(FinalProjectPlugin Eigen3::Eigen)
 
 install(TARGETS ArduCopterIRLockPlugin DESTINATION ${GAZEBO_PLUGIN_PATH})
 install(TARGETS FinalProjectPlugin DESTINATION ${GAZEBO_PLUGIN_PATH})

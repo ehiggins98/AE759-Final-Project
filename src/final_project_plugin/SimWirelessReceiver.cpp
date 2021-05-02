@@ -25,7 +25,6 @@ namespace gazebo
             {
                 double trueDistance = receiverPose.CoordPositionSub(itr->second->WorldPose()).Length();
                 double noise = (*distribution)(*generator);
-                gzmsg << trueDistance + noise << "\n";
                 result.insert(std::pair<std::string, double>(itr->first, trueDistance + noise));
             }
 

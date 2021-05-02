@@ -3,7 +3,9 @@
 #include <gazebo/common/common.hh>
 #include <ignition/math/Vector3.hh>
 #include <gazebo/sensors/sensors.hh>
-#include <gazebo/transport/Subscriber.hh>
+
+#include <Eigen/Dense>
+
 #include "./Motors.cpp"
 #include "./SimWirelessReceiver.cpp"
 
