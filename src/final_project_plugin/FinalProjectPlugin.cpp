@@ -8,6 +8,7 @@
 
 #include "./Motors.cpp"
 #include "./SimWirelessReceiver.cpp"
+#include "./EKF.cpp"
 
 namespace gazebo
 {
@@ -25,8 +26,10 @@ namespace gazebo
                 std::bind(&FinalProjectPlugin::OnUpdate, this));
 
             LoadSensors(_parent, _sdf);
-
             LoadControl(_parent, _sdf->GetElement("control"));
+
+            ignition::math::v4::Pose3d pose = model->WorldPose();
+            ekf = boost::shared_ptr<EKF>(new EKF(pose.Pos().X(), pose.Pos().Y(), 0, 0));
         }
 
         void LoadSensors(physics::ModelPtr model, sdf::ElementPtr _sdf)
@@ -108,6 +111,8 @@ namespace gazebo
         common::Time lastUpdateTime;
 
         boost::shared_ptr<SimWirelessReceiver> receiver;
+
+        boost::shared_ptr<EKF> ekf;
     };
 
     // Register this plugin with the simulator
