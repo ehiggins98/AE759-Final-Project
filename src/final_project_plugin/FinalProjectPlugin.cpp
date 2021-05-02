@@ -100,7 +100,6 @@ namespace gazebo
         physics::ModelPtr model;
         event::ConnectionPtr updateConnection;
         sensors::ImuSensorPtr imu;
-        transport::SubscriberPtr subscriber;
 
         std::vector<Control> controls;
 
