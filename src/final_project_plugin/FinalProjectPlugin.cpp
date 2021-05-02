@@ -5,6 +5,7 @@
 #include <gazebo/sensors/sensors.hh>
 #include <gazebo/transport/Subscriber.hh>
 #include "./Motors.cpp"
+#include "./SimWirelessReceiver.cpp"
 
 namespace gazebo
 {
@@ -21,12 +22,12 @@ namespace gazebo
             this->updateConnection = event::Events::ConnectWorldUpdateBegin(
                 std::bind(&FinalProjectPlugin::OnUpdate, this));
 
-            LoadSensors(_sdf);
+            LoadSensors(_parent, _sdf);
 
             LoadControl(_parent, _sdf->GetElement("control"));
         }
 
-        void LoadSensors(sdf::ElementPtr _sdf)
+        void LoadSensors(physics::ModelPtr model, sdf::ElementPtr _sdf)
         {
             std::string wirelessName = _sdf->Get("wirelessName", static_cast<std::string>("wireless_sensor")).first;
             std::string imuName = _sdf->Get("imuName", static_cast<std::string>("imu_sensor")).first;
@@ -41,12 +42,9 @@ namespace gazebo
             }
             else
             {
-                this->wireless = std::dynamic_pointer_cast<sensors::WirelessReceiver>(sensors::SensorManager::Instance()->GetSensor(wirelessScopedName[0]));
-                transport::NodePtr node(new transport::Node());
-                node->Init();
-
-                this->subscriber = node->Subscribe(this->wireless->Topic(), &FinalProjectPlugin::ReceiveWirelessData, this);
-                this->wirelessNode = node;
+                sensors::WirelessReceiverPtr receiver = std::dynamic_pointer_cast<sensors::WirelessReceiver>(sensors::SensorManager::Instance()->GetSensor(wirelessScopedName[0]));
+                std::unordered_map<std::string, physics::ModelPtr> transmitters = LoadTransmitters(model, _sdf);
+                this->receiver = boost::shared_ptr<SimWirelessReceiver>(new SimWirelessReceiver(receiver, transmitters));
             }
 
             if (imuScopedName.size() > 1)
@@ -57,6 +55,28 @@ namespace gazebo
             {
                 this->imu = std::dynamic_pointer_cast<sensors::ImuSensor>(sensors::SensorManager::Instance()->GetSensor(imuScopedName[0]));
             }
+        }
+
+        std::unordered_map<std::string, physics::ModelPtr> LoadTransmitters(physics::ModelPtr model, sdf::ElementPtr sdf)
+        {
+            std::unordered_map<std::string, physics::ModelPtr> transmitters;
+
+            sdf::ElementPtr transmittersSdf = sdf->GetElement("transmitter");
+            while (transmittersSdf)
+            {
+                gzmsg << "hi"
+                      << "\n";
+                if (!transmittersSdf->HasAttribute("name"))
+                {
+                    break;
+                }
+
+                std::string sensorName = transmittersSdf->GetAttribute("name")->GetAsString();
+                transmitters.insert(std::pair<std::string, physics::ModelPtr>(sensorName, model->NestedModel(sensorName)));
+                transmittersSdf = transmittersSdf->GetNextElement();
+            }
+
+            return transmitters;
         }
 
         void LoadControl(physics::ModelPtr model, sdf::ElementPtr controlSdf)
@@ -72,21 +92,7 @@ namespace gazebo
 
         void OnUpdate()
         {
-            common::Time curTime = model->GetWorld()->SimTime();
-            if (curTime > lastUpdateTime)
-            {
-                for (std::vector<Control>::iterator itr = controls.begin(), end = controls.end(); itr != end; itr++)
-                {
-                    itr->ApplyCommand(1, (curTime - lastUpdateTime).Double());
-                }
-            }
-
-            lastUpdateTime = curTime;
-        }
-
-        void ReceiveWirelessData(ConstWirelessNodesPtr &_msg)
-        {
-            gzmsg << _msg->node_size() << "\n";
+            receiver->Sample();
         }
 
         // Pointer to the model
@@ -94,13 +100,13 @@ namespace gazebo
         physics::ModelPtr model;
         event::ConnectionPtr updateConnection;
         sensors::ImuSensorPtr imu;
-        sensors::WirelessReceiverPtr wireless;
-        transport::NodePtr wirelessNode;
         transport::SubscriberPtr subscriber;
 
         std::vector<Control> controls;
 
         common::Time lastUpdateTime;
+
+        boost::shared_ptr<SimWirelessReceiver> receiver;
     };
 
     // Register this plugin with the simulator

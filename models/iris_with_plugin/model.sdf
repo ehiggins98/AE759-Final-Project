@@ -23,6 +23,34 @@
       </axis>
     </joint>
 
+    <model name='wireless_transmitter_1'>
+      <include>
+        <uri>model://wireless_transmitter</uri>
+      </include>
+      <pose>6.85 10.3 5 0 0 0</pose>
+    </model>
+
+    <model name='wireless_transmitter_2'>
+      <include>
+        <uri>model://wireless_transmitter</uri>
+      </include>
+      <pose>6.85 -10.3 5 0 0 0</pose>
+    </model>
+
+    <model name='wireless_transmitter_3'>
+      <include>
+        <uri>model://wireless_transmitter</uri>
+      </include>
+      <pose>-6.85 -10.3 5 0 0 0</pose>
+    </model>
+
+    <model name='wireless_transmitter_4'>
+      <include>
+        <uri>model://wireless_transmitter</uri>
+      </include>
+      <pose>-6.85 10.3 5 0 0 0</pose>
+    </model>
+
     <!-- plugins -->
     <plugin name="rotor_0_blade_1" filename="libLiftDragPlugin.so">
       <a0>0.3</a0>
@@ -160,6 +188,10 @@
       <gazeboXYZToNED>0 0 0 3.141593 0 0</gazeboXYZToNED>
       <imuName>iris_demo::iris::iris/imu_link::imu_sensor</imuName>
       <wirelessName>iris_demo::iris::iris/wireless_link::wireless_sensor</wirelessName>
+      <transmitter name="wireless_transmitter_1"></transmitter>
+      <transmitter name="wireless_transmitter_2"></transmitter>
+      <transmitter name="wireless_transmitter_3"></transmitter>
+      <transmitter name="wireless_transmitter_4"></transmitter>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
       <control channel="0">
         <offset>0</offset>
