@@ -27,6 +27,7 @@ target_link_libraries(FinalProjectPlugin EKF)
 target_link_libraries(Motors ${GAZEBO_LIBRARIES})
 target_link_libraries(SimWirelessReceiver ${GAZEBO_LIBRARIES})
 target_link_libraries(EKF Eigen3::Eigen)
+target_link_libraries(FinalProjectPlugin Eigen3::Eigen)
 
 install(TARGETS ArduCopterIRLockPlugin DESTINATION ${GAZEBO_PLUGIN_PATH})
 install(TARGETS FinalProjectPlugin DESTINATION ${GAZEBO_PLUGIN_PATH})
