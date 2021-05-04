@@ -1,5 +1,13 @@
 #include <Eigen/Dense>
 
+struct EKFState
+{
+    double x;
+    double y;
+    double vx;
+    double vy;
+};
+
 class EKF
 {
 public:
@@ -33,9 +41,15 @@ public:
         Pk = (I - K * H) * P_minus;
     }
 
-    std::tuple<double, double, double, double> GetState()
+    EKFState GetState()
     {
-        return std::make_tuple(xk(0), xk(1), xk(2), xk(3));
+        EKFState state;
+        state.x = xk(0);
+        state.y = xk(1);
+        state.vx = xk(2);
+        state.vy = xk(3);
+
+        return state;
     }
 
 private:

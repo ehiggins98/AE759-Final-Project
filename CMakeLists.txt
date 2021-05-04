@@ -19,15 +19,18 @@ add_library(FinalProjectPlugin SHARED src/final_project_plugin/FinalProjectPlugi
 add_library(Motors SHARED src/final_project_plugin/Motors.cpp)
 add_library(SimWirelessReceiver SHARED src/final_project_plugin/SimWirelessReceiver.cpp)
 add_library(EKF SHARED src/final_project_plugin/EKF.cpp)
+add_library(ArduPilot SHARED src/final_project_plugin/ArduPilotInterface.cpp)
 
 target_link_libraries(FinalProjectPlugin ${GAZEBO_LIBRARIES})
 target_link_libraries(FinalProjectPlugin Motors)
 target_link_libraries(FinalProjectPlugin SimWirelessReceiver)
 target_link_libraries(FinalProjectPlugin EKF)
+target_link_libraries(FinalProjectPlugin ArduPilot)
 target_link_libraries(Motors ${GAZEBO_LIBRARIES})
 target_link_libraries(SimWirelessReceiver ${GAZEBO_LIBRARIES})
 target_link_libraries(EKF Eigen3::Eigen)
 target_link_libraries(FinalProjectPlugin Eigen3::Eigen)
+target_link_libraries(ArduPilot ${GAZEBO_LIBRARIES})
 
 install(TARGETS ArduCopterIRLockPlugin DESTINATION ${GAZEBO_PLUGIN_PATH})
 install(TARGETS FinalProjectPlugin DESTINATION ${GAZEBO_PLUGIN_PATH})

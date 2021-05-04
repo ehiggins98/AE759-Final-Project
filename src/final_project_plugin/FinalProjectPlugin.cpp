@@ -1,4 +1,5 @@
 #include <math.h>
+#include <mutex>
 
 #include <Eigen/Dense>
 #include <gazebo/common/common.hh>
@@ -10,6 +11,7 @@
 #include "./Motors.cpp"
 #include "./SimWirelessReceiver.cpp"
 #include "./EKF.cpp"
+#include "./ArduPilotInterface.cpp"
 
 namespace gazebo
 {
@@ -31,6 +33,8 @@ namespace gazebo
 
             ignition::math::v4::Pose3d pose = model->WorldPose();
             ekf = boost::shared_ptr<EKF>(new EKF(pose.Pos().X(), pose.Pos().Y(), 0, 0, dt));
+
+            arduPilotInterface = boost::shared_ptr<ArduPilotInterface>(new ArduPilotInterface(_sdf));
         }
 
         void LoadSensors(physics::ModelPtr model, sdf::ElementPtr _sdf)
@@ -52,7 +56,7 @@ namespace gazebo
                 std::unordered_map<std::string, physics::ModelPtr> transmitters = LoadTransmitters(model, _sdf);
                 this->receiver = boost::shared_ptr<SimWirelessReceiver>(new SimWirelessReceiver(receiver, transmitters));
 
-                this->transmitterPositions = boost::shared_ptr<std::unordered_map<std::string, ignition::math::v4::Vector3d>>(new std::unordered_map<std::string, ignition::math::v4::Pose3d>());
+                this->transmitterPositions = boost::shared_ptr<std::unordered_map<std::string, ignition::math::v4::Vector3d>>(new std::unordered_map<std::string, ignition::math::v4::Vector3d>());
                 for (std::unordered_map<std::string, physics::ModelPtr>::const_iterator itr = transmitters.cbegin(), end = transmitters.cend(); itr != end; itr++)
                 {
                     this->transmitterPositions->insert(std::pair<std::string, ignition::math::v4::Vector3d>(itr->first, itr->second->WorldPose().Pos()));
@@ -104,9 +108,36 @@ namespace gazebo
 
         void OnUpdate()
         {
-            std::tuple<double, double> loc = UwbLocation();
-            std::tuple<double, double, double> accel = AccelToNavFrame(imu->LinearAcceleration(), imu->Orientation());
-            ekf->Update(std::get<0>(loc), std::get<1>(loc), std::get<0>(accel), std::get<1>(accel));
+            std::lock_guard<std::mutex> lock(mutex);
+            common::Time curTime = model->GetWorld()->SimTime();
+
+            if (curTime > lastUpdateTime)
+            {
+                std::vector<float> commands = arduPilotInterface->ReceiveMotorCommands();
+                for (int i = 0; i < controls.size(); i++)
+                {
+                    controls[i].ApplyCommand(commands[i], (curTime - lastUpdateTime).Double());
+                }
+
+                std::tuple<double, double> loc = UwbLocation();
+                std::tuple<double, double, double> accel = BodyToNavFrame(imu->LinearAcceleration(), imu->Orientation());
+                ekf->Update(std::get<0>(loc), std::get<1>(loc), std::get<0>(accel), std::get<1>(accel));
+                EKFState ekfState = ekf->GetState();
+
+                ignition::math::Vector3d vel = model->GetLink()->WorldLinearVel();
+
+                State state;
+                state.angularVel = imu->AngularVelocity();
+                state.linearAccel = imu->LinearAcceleration();
+                state.linearVel = ignition::math::Vector3d(ekfState.vx, ekfState.vy, vel.Z() * -1);
+                state.orientation = imu->Orientation();
+                state.position = ignition::math::Vector3d(ekfState.x, ekfState.y, model->WorldPose().Pos().Z());
+                state.timestamp = model->GetWorld()->SimTime().Double();
+
+                arduPilotInterface->SendState(state);
+            }
+
+            lastUpdateTime = curTime;
         }
 
         std::tuple<double, double> UwbLocation()
@@ -136,7 +167,7 @@ namespace gazebo
             return std::tuple<double, double>(uavPos(0), uavPos(1));
         }
 
-        std::tuple<double, double, double> AccelToNavFrame(ignition::math::v4::Vector3d accel, ignition::math::v4::Quaterniond orientation)
+        std::tuple<double, double, double> BodyToNavFrame(ignition::math::v4::Vector3d accel, ignition::math::v4::Quaterniond orientation)
         {
             double phi = orientation.Roll();
             double theta = orientation.Pitch();
@@ -178,6 +209,10 @@ namespace gazebo
 
         boost::shared_ptr<EKF> ekf;
         double dt = 0.1;
+
+        boost::shared_ptr<ArduPilotInterface> arduPilotInterface;
+
+        std::mutex mutex;
     };
 
     // Register this plugin with the simulator
