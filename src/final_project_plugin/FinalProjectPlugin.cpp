@@ -80,8 +80,6 @@ namespace gazebo
             sdf::ElementPtr transmittersSdf = sdf->GetElement("transmitter");
             while (transmittersSdf)
             {
-                gzmsg << "hi"
-                      << "\n";
                 if (!transmittersSdf->HasAttribute("name"))
                 {
                     break;
@@ -114,7 +112,8 @@ namespace gazebo
             if (curTime > lastUpdateTime)
             {
                 std::vector<float> commands = arduPilotInterface->ReceiveMotorCommands();
-                for (int i = 0; i < controls.size(); i++)
+
+                for (int i = 0; i < commands.size(); i++)
                 {
                     controls[i].ApplyCommand(commands[i], (curTime - lastUpdateTime).Double());
                 }
@@ -188,7 +187,7 @@ namespace gazebo
             accelVec << accel.X(), accel.Y(), accel.Z();
 
             Eigen::Vector3d g;
-            g << 0, 0, -g;
+            g << 0, 0, (-9.8);
 
             Eigen::Vector3d accelNav = R * accelVec + g;
             return std::tuple<double, double, double>(accelNav(0), accelNav(1), accelNav(2));

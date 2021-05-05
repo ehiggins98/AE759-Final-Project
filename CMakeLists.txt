@@ -1,6 +1,7 @@
 project(ae759_final_project)
 
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+set(CMAKE_BUILD_TYPE Debug)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(gazebo REQUIRED)
