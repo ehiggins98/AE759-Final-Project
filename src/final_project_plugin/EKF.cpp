@@ -1,4 +1,5 @@
 #include <Eigen/Dense>
+#include <gazebo/gazebo.hh>
 
 struct EKFState
 {
@@ -8,97 +9,113 @@ struct EKFState
     double vy;
 };
 
-class EKF
+namespace gazebo
 {
-public:
-    EKF(double x, double y, double vx, double vy, double dt)
+    class EKF
     {
-        xk(0) = x;
-        xk(1) = y;
-        xk(2) = vx;
-        xk(3) = vy;
+    public:
+        EKF(double x, double y, double vx, double vy)
+        {
+            xk(0) = x;
+            xk(1) = y;
+            xk(2) = vx;
+            xk(3) = vy;
 
-        initA(dt);
-        initB(dt);
-        initH(dt);
-        initQ();
-        initR();
-        initI();
-    }
+            initQ();
+            initR();
+            initI();
+            initP();
+        }
 
-    void Update(double x, double y, double ax, double ay)
-    {
-        Eigen::Vector2d u;
-        u << ax, ay;
+        void Update(double x, double y, double ax, double ay, double dt)
+        {
+            initA(dt);
+            initB(dt);
+            initH(dt);
 
-        Eigen::Vector2d z;
-        z << x, y;
+            Eigen::Vector2d u;
+            u << ax, ay;
 
-        Eigen::Vector4d x_minus = A * xk + B * u;
-        Eigen::Matrix4d P_minus = A * Pk * A.transpose() + Q;
-        Eigen::Matrix<double, 4, 2> K = P_minus * H.transpose() * (H * P_minus * H.transpose() + R).inverse();
-        xk = K * (z - H * x_minus);
-        Pk = (I - K * H) * P_minus;
-    }
+            Eigen::Vector2d z;
+            z << x, y;
 
-    EKFState GetState()
-    {
-        EKFState state;
-        state.x = xk(0);
-        state.y = xk(1);
-        state.vx = xk(2);
-        state.vy = xk(3);
+            Eigen::Vector4d x_minus = A * xk + B * u;
+            Eigen::Matrix4d P_minus = A * Pk * A.transpose() + Q;
+            Eigen::Matrix<double, 4, 2> K = P_minus * H.transpose() * (H * P_minus * H.transpose() + R).inverse();
+            xk = K * (z - H * x_minus);
+            Pk = (I - K * H) * P_minus;
+        }
 
-        return state;
-    }
+        EKFState GetState()
+        {
+            EKFState state;
+            state.x = xk(0);
+            state.y = xk(1);
+            state.vx = xk(2);
+            state.vy = xk(3);
 
-private:
-    void initA(double dt)
-    {
-        A << 1, 0, dt, 0,
-            0, 1, 0, dt,
-            0, 0, 1, 0,
-            0, 0, 0, 1;
-    }
+            return state;
+        }
 
-    void initB(double dt)
-    {
-        B << (dt * dt) / 2, 0,
-            0, (dt * dt) / 2,
-            dt / 2, 0,
-            0, dt / 2;
-    }
+    private:
+        void initA(double dt)
+        {
+            A << 1, 0, dt, 0,
+                0, 1, 0, dt,
+                0, 0, 1, 0,
+                0, 0, 0, 1;
+        }
 
-    void initH(double dt)
-    {
-        H.Identity();
-    }
+        void initB(double dt)
+        {
+            B << (dt * dt) / 2, 0,
+                0, (dt * dt) / 2,
+                dt / 2, 0,
+                0, dt / 2;
+        }
 
-    void initQ()
-    {
-        Q << 0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0;
-    }
+        void initH(double dt)
+        {
+            H << 1, 0, 0, 0,
+                0, 1, 0, 0;
+        }
 
-    void initR()
-    {
-        R << 0, 0,
-            0, 0;
-    }
+        void initQ()
+        {
+            Q << 0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0;
+        }
 
-    void initI()
-    {
-        I.Identity();
-    }
+        void initR()
+        {
+            R << 0.01, 0,
+                0, 0.01;
+        }
 
-    Eigen::Matrix4d A;
-    Eigen::Matrix<double, 4, 2> B;
-    Eigen::Matrix<double, 2, 4> H;
-    Eigen::Matrix4d Q;
-    Eigen::Matrix2d R;
-    Eigen::Matrix4d I;
-    Eigen::Vector4d xk;
-    Eigen::Matrix4d Pk;
-};
+        void initI()
+        {
+            I << 1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1;
+        }
+
+        void initP()
+        {
+            Pk.Identity();
+        }
+
+        Eigen::Matrix4d A;
+        Eigen::Matrix<double, 4, 2> B;
+        Eigen::Matrix<double, 2, 4> H;
+        Eigen::Matrix4d Q;
+        Eigen::Matrix2d R;
+        Eigen::Matrix4d I;
+        Eigen::Vector4d xk;
+        Eigen::Matrix4d Pk;
+
+        bool hadNan = false;
+    };
+}

@@ -184,18 +184,31 @@
       <link_name>iris::rotor_3</link_name>
     </plugin>
     <plugin name="final_project_plugin" filename="libFinalProjectPlugin.so">
-      <modelXYZToAirplaneXForwardZDown>0 0 0 3.141593 0 0</modelXYZToAirplaneXForwardZDown>
-      <imuName>iris_demo::iris::iris/imu_link::imu_sensor</imuName>
-      <wirelessName>iris_demo::iris::iris/wireless_link::wireless_sensor</wirelessName>
       <fdm_addr>127.0.0.1</fdm_addr>
       <fdm_port_in>9002</fdm_port_in>
       <fdm_port_out>9003</fdm_port_out>
+      <!--
+          Require by APM :
+          Only change model and gazebo from XYZ to XY-Z coordinates
+      -->
+      <modelXYZToAirplaneXForwardZDown>0 0 0 3.141593 0 0</modelXYZToAirplaneXForwardZDown>
+      <gazeboXYZToNED>0 0 0 3.141593 0 0</gazeboXYZToNED>
+      <imuName>iris_demo::iris::iris/imu_link::imu_sensor</imuName>
+      <wirelessName>iris_demo::iris::iris/wireless_link::wireless_sensor</wirelessName>
       <transmitter name="wireless_transmitter_1"></transmitter>
       <transmitter name="wireless_transmitter_2"></transmitter>
       <transmitter name="wireless_transmitter_3"></transmitter>
       <transmitter name="wireless_transmitter_4"></transmitter>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
       <control channel="0">
+      <!--
+          incoming control command [0, 1]
+          so offset it by 0 to get [0, 1]
+          and divide max target by 1.
+          offset = 0
+          multiplier = 838 max rpm / 1 = 838
+        -->
+        <type>VELOCITY</type>
         <offset>0</offset>
         <p_gain>0.20</p_gain>
         <i_gain>0</i_gain>
@@ -209,6 +222,7 @@
         <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
       </control>
       <control channel="1">
+        <type>VELOCITY</type>
         <offset>0</offset>
         <p_gain>0.20</p_gain>
         <i_gain>0</i_gain>
@@ -222,6 +236,7 @@
         <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
       </control>
       <control channel="2">
+        <type>VELOCITY</type>
         <offset>0</offset>
         <p_gain>0.20</p_gain>
         <i_gain>0</i_gain>
@@ -235,6 +250,7 @@
         <controlVelocitySlowdownSim>1</controlVelocitySlowdownSim>
       </control>
       <control channel="3">
+        <type>VELOCITY</type>
         <offset>0</offset>
         <p_gain>0.20</p_gain>
         <i_gain>0</i_gain>

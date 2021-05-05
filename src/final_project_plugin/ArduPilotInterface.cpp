@@ -187,37 +187,94 @@ namespace gazebo
 
         std::vector<float> ReceiveMotorCommands()
         {
-            bool first = true;
-            ssize_t recvSize = -1;
-            MotorPacket pkt, temp_pkt;
-            while (arduPilotOnline && (recvSize != -1 || first))
+            MotorPacket pkt;
+            uint32_t waitMs;
+            if (this->arduPilotOnline)
             {
-                ssize_t recvSize_temp = socket_in.Recv(&temp_pkt, sizeof(MotorPacket), first ? 1000 : 0ul);
-                first = false;
+                // increase timeout for receive once we detect a packet from
+                // ArduPilot FCS.
+                waitMs = 1000;
+            }
+            else
+            {
+                // Otherwise skip quickly and do not set control force.
+                waitMs = 1;
+            }
+            ssize_t recvSize =
+                this->socket_in.Recv(&pkt, sizeof(MotorPacket), waitMs);
 
-                if (recvSize != -1)
+            // Drain the socket in the case we're backed up
+            int counter = 0;
+            MotorPacket last_pkt;
+            while (true)
+            {
+                // last_pkt = pkt;
+                const ssize_t recvSize_last =
+                    this->socket_in.Recv(&last_pkt, sizeof(MotorPacket), 0ul);
+                if (recvSize_last == -1)
                 {
-                    pkt = temp_pkt;
-                    recvSize = recvSize_temp;
+                    break;
                 }
+                counter++;
+                pkt = last_pkt;
+                recvSize = recvSize_last;
+            }
+            if (counter > 0)
+            {
+                gzdbg << "Drained n packets: " << counter << std::endl;
             }
 
             if (recvSize == -1)
             {
-                common::Time::NSleep(100);
+                // didn't receive a packet
+                // gzdbg << "no packet\n";
+                gazebo::common::Time::NSleep(100);
+                if (this->arduPilotOnline)
+                {
+                    gzwarn << "Broken ArduPilot connection, count ["
+                           << this->connectionTimeoutCount
+                           << "/" << this->connectionTimeoutMaxCount
+                           << "]\n";
+                    if (++this->connectionTimeoutCount >
+                        this->connectionTimeoutMaxCount)
+                    {
+                        this->connectionTimeoutCount = 0;
+                        this->arduPilotOnline = false;
+                        gzwarn << "Broken ArduPilot connection.\n";
+                    }
+                }
             }
             else
             {
-                const ssize_t recvChannels = recvSize / sizeof(pkt.motorSpeed[0]);
-                arduPilotOnline = true;
-
-                std::vector<float> received;
-                for (unsigned i = 0; i < recvChannels; i++)
+                const ssize_t expectedPktSize =
+                    sizeof(pkt.motorSpeed[0]) * 4;
+                if (recvSize < expectedPktSize)
                 {
-                    received.push_back(pkt.motorSpeed[i]);
+                    gzerr << "Got less than model needs. Got: " << recvSize
+                          << "commands, expected size: " << expectedPktSize << "\n";
+                }
+                const ssize_t recvChannels = recvSize / sizeof(pkt.motorSpeed[0]);
+                // for(unsigned int i = 0; i < recvChannels; ++i)
+                // {
+                //   gzdbg << "servo_command [" << i << "]: " << pkt.motorSpeed[i] << "\n";
+                // }
+
+                if (!this->arduPilotOnline)
+                {
+                    gzdbg << "ArduPilot controller online detected.\n";
+                    // made connection, set some flags
+                    this->connectionTimeoutCount = 0;
+                    this->arduPilotOnline = true;
                 }
 
-                return received;
+                std::vector<float> commands;
+                // compute command based on requested motorSpeed
+                for (unsigned i = 0; i < recvChannels; ++i)
+                {
+                    commands.push_back(pkt.motorSpeed[i]);
+                }
+
+                return commands;
             }
 
             return std::vector<float>();
@@ -252,5 +309,8 @@ namespace gazebo
         ArduPilotSocket socket_in;
         ArduPilotSocket socket_out;
         bool arduPilotOnline = false;
+
+        int connectionTimeoutCount = 0;
+        int connectionTimeoutMaxCount = 10;
     };
 }

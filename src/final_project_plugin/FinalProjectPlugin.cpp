@@ -32,9 +32,23 @@ namespace gazebo
             LoadControl(_parent, _sdf->GetElement("control"));
 
             ignition::math::v4::Pose3d pose = model->WorldPose();
-            ekf = boost::shared_ptr<EKF>(new EKF(pose.Pos().X(), pose.Pos().Y(), 0, 0, dt));
+            ekf = boost::shared_ptr<EKF>(new EKF(pose.Pos().X(), pose.Pos().Y(), 0, 0));
 
             arduPilotInterface = boost::shared_ptr<ArduPilotInterface>(new ArduPilotInterface(_sdf));
+
+            this->modelXYZToAirplaneXForwardZDown =
+                ignition::math::Pose3d(0, 0, 0, 0, 0, 0);
+            if (_sdf->HasElement("modelXYZToAirplaneXForwardZDown"))
+            {
+                this->modelXYZToAirplaneXForwardZDown =
+                    _sdf->Get<ignition::math::Pose3d>("modelXYZToAirplaneXForwardZDown");
+            }
+
+            this->gazeboXYZToNED = ignition::math::Pose3d(0, 0, 0, IGN_PI, 0, 0);
+            if (_sdf->HasElement("gazeboXYZToNED"))
+            {
+                this->gazeboXYZToNED = _sdf->Get<ignition::math::Pose3d>("gazeboXYZToNED");
+            }
         }
 
         void LoadSensors(physics::ModelPtr model, sdf::ElementPtr _sdf)
@@ -109,7 +123,7 @@ namespace gazebo
             std::lock_guard<std::mutex> lock(mutex);
             common::Time curTime = model->GetWorld()->SimTime();
 
-            if (curTime > lastUpdateTime)
+            if (curTime >= lastUpdateTime)
             {
                 std::vector<float> commands = arduPilotInterface->ReceiveMotorCommands();
 
@@ -120,23 +134,33 @@ namespace gazebo
 
                 std::tuple<double, double> loc = UwbLocation();
                 std::tuple<double, double, double> accel = BodyToNavFrame(imu->LinearAcceleration(), imu->Orientation());
-                ekf->Update(std::get<0>(loc), std::get<1>(loc), std::get<0>(accel), std::get<1>(accel));
+                ekf->Update(std::get<0>(loc), std::get<1>(loc), std::get<0>(accel), std::get<1>(accel), (curTime - lastUpdateTime).Double());
                 EKFState ekfState = ekf->GetState();
 
-                ignition::math::Vector3d vel = model->GetLink()->WorldLinearVel();
+                const ignition::math::Pose3d gazeboXYZToModelXForwardZDown =
+                    this->modelXYZToAirplaneXForwardZDown +
+                    ignition::math::Pose3d(ignition::math::Vector3d(ekfState.x, ekfState.y, model->WorldPose().Pos().Z()), imu->Orientation());
+
+                const ignition::math::Pose3d NEDToModelXForwardZUp =
+                    gazeboXYZToModelXForwardZDown - this->gazeboXYZToNED;
+
+                const ignition::math::Vector3d velGazeboWorldFrame =
+                    ignition::math::Vector3d(ekfState.vx, ekfState.vy, model->GetLink()->WorldLinearVel().Z());
+                const ignition::math::Vector3d velNEDFrame =
+                    this->gazeboXYZToNED.Rot().RotateVectorReverse(velGazeboWorldFrame);
 
                 State state;
                 state.angularVel = imu->AngularVelocity();
                 state.linearAccel = imu->LinearAcceleration();
-                state.linearVel = ignition::math::Vector3d(ekfState.vx, ekfState.vy, vel.Z() * -1);
-                state.orientation = imu->Orientation();
-                state.position = ignition::math::Vector3d(ekfState.x, ekfState.y, model->WorldPose().Pos().Z());
+                state.linearVel = velNEDFrame;
+                state.orientation = NEDToModelXForwardZUp.Rot();
+                state.position = NEDToModelXForwardZUp.Pos();
                 state.timestamp = model->GetWorld()->SimTime().Double();
 
                 arduPilotInterface->SendState(state);
-            }
 
-            lastUpdateTime = curTime;
+                lastUpdateTime = curTime;
+            }
         }
 
         std::tuple<double, double> UwbLocation()
@@ -212,6 +236,9 @@ namespace gazebo
         boost::shared_ptr<ArduPilotInterface> arduPilotInterface;
 
         std::mutex mutex;
+
+        ignition::math::Pose3d modelXYZToAirplaneXForwardZDown;
+        ignition::math::Pose3d gazeboXYZToNED;
     };
 
     // Register this plugin with the simulator
