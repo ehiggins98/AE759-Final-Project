@@ -12,6 +12,7 @@
 #include "./SimWirelessReceiver.cpp"
 #include "./EKF.cpp"
 #include "./ArduPilotInterface.cpp"
+#include "./Logger.cpp"
 
 namespace gazebo
 {
@@ -158,6 +159,8 @@ namespace gazebo
                 arduPilotInterface->SendState(state);
 
                 lastUpdateTime = curTime;
+
+                LogState();
             }
         }
 
@@ -215,6 +218,31 @@ namespace gazebo
             return std::tuple<double, double, double>(accelNav(0), accelNav(1), accelNav(2));
         }
 
+        void LogState()
+        {
+            logCounter++;
+            if (logCounter % 10 == 0)
+            {
+                EKFState ekfState = ekf->GetState();
+
+                LogEntry entry;
+                entry.estimated.x = ekfState.x;
+                entry.estimated.y = ekfState.y;
+                entry.estimated.vx = ekfState.vx;
+                entry.estimated.vy = ekfState.vy;
+
+                ignition::math::Vector3d pos = model->WorldPose().Pos();
+                entry.truth.x = pos.X();
+                entry.truth.y = pos.Y();
+
+                ignition::math::Vector3d vel = model->GetLink()->WorldLinearVel();
+                entry.truth.vx = vel.X();
+                entry.truth.vy = vel.Y();
+
+                logger.WriteRecord(entry);
+            }
+        }
+
         // Pointer to the model
     private:
         physics::ModelPtr model;
@@ -237,6 +265,9 @@ namespace gazebo
 
         ignition::math::Pose3d modelXYZToAirplaneXForwardZDown;
         ignition::math::Pose3d gazeboXYZToNED;
+
+        Logger logger;
+        int logCounter = 0;
     };
 
     // Register this plugin with the simulator
