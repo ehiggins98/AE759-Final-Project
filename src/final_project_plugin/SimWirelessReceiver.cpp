@@ -8,9 +8,9 @@ namespace gazebo
     class SimWirelessReceiver
     {
     public:
-        SimWirelessReceiver(sensors::WirelessReceiverPtr receiver, std::unordered_map<std::string, physics::ModelPtr> transmitters)
+        SimWirelessReceiver(physics::ModelPtr model, std::unordered_map<std::string, physics::ModelPtr> transmitters)
         {
-            this->receiver = receiver;
+            this->model = model;
             this->transmitters = transmitters;
             this->generator = boost::shared_ptr<std::default_random_engine>(new std::default_random_engine());
             this->distribution = boost::shared_ptr<std::normal_distribution<double>>(new std::normal_distribution<double>(0, 0.075));
@@ -20,7 +20,7 @@ namespace gazebo
         {
             std::unordered_map<std::string, double> result;
 
-            ignition::math::v4::Pose3d receiverPose = receiver->Pose();
+            ignition::math::v4::Pose3d receiverPose = model->WorldPose();
             for (std::unordered_map<std::string, physics::ModelPtr>::const_iterator itr = transmitters.cbegin(), end = transmitters.cend(); itr != end; itr++)
             {
                 double trueDistance = receiverPose.CoordPositionSub(itr->second->WorldPose()).Length();
@@ -32,7 +32,7 @@ namespace gazebo
         }
 
     private:
-        sensors::WirelessReceiverPtr receiver;
+        physics::ModelPtr model;
         std::unordered_map<std::string, physics::ModelPtr> transmitters;
         boost::shared_ptr<std::default_random_engine> generator;
         boost::shared_ptr<std::normal_distribution<double>> distribution;

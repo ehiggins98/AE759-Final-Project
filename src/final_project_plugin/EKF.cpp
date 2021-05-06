@@ -42,7 +42,7 @@ namespace gazebo
             Eigen::Vector4d x_minus = A * xk + B * u;
             Eigen::Matrix4d P_minus = A * Pk * A.transpose() + Q;
             Eigen::Matrix<double, 4, 2> K = P_minus * H.transpose() * (H * P_minus * H.transpose() + R).inverse();
-            xk = K * (z - H * x_minus);
+            xk = x_minus + K * (z - H * x_minus);
             Pk = (I - K * H) * P_minus;
         }
 

@@ -66,9 +66,8 @@ namespace gazebo
             }
             else
             {
-                sensors::WirelessReceiverPtr receiver = std::dynamic_pointer_cast<sensors::WirelessReceiver>(sensors::SensorManager::Instance()->GetSensor(wirelessScopedName[0]));
                 std::unordered_map<std::string, physics::ModelPtr> transmitters = LoadTransmitters(model, _sdf);
-                this->receiver = boost::shared_ptr<SimWirelessReceiver>(new SimWirelessReceiver(receiver, transmitters));
+                this->receiver = boost::shared_ptr<SimWirelessReceiver>(new SimWirelessReceiver(model, transmitters));
 
                 this->transmitterPositions = boost::shared_ptr<std::unordered_map<std::string, ignition::math::v4::Vector3d>>(new std::unordered_map<std::string, ignition::math::v4::Vector3d>());
                 for (std::unordered_map<std::string, physics::ModelPtr>::const_iterator itr = transmitters.cbegin(), end = transmitters.cend(); itr != end; itr++)
@@ -156,7 +155,6 @@ namespace gazebo
                 state.orientation = NEDToModelXForwardZUp.Rot();
                 state.position = NEDToModelXForwardZUp.Pos();
                 state.timestamp = model->GetWorld()->SimTime().Double();
-
                 arduPilotInterface->SendState(state);
 
                 lastUpdateTime = curTime;
