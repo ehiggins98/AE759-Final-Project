@@ -133,8 +133,8 @@ namespace gazebo
                 }
 
                 std::tuple<double, double> loc = UwbLocation();
-                std::tuple<double, double, double> accel = BodyToNavFrame(imu->LinearAcceleration(), imu->Orientation());
-                ekf->Update(std::get<0>(loc), std::get<1>(loc), std::get<0>(accel), std::get<1>(accel), (curTime - lastUpdateTime).Double());
+                ignition::math::Vector3d accel = BodyToNavFrame(imu->LinearAcceleration(), imu->Orientation());
+                ekf->Update(std::get<0>(loc), std::get<1>(loc), accel.X(), accel.Y(), (curTime - lastUpdateTime).Double());
                 EKFState ekfState = ekf->GetState();
 
                 const ignition::math::Pose3d gazeboXYZToModelXForwardZDown =
@@ -191,31 +191,10 @@ namespace gazebo
             return std::tuple<double, double>(uavPos(0), uavPos(1));
         }
 
-        std::tuple<double, double, double> BodyToNavFrame(ignition::math::v4::Vector3d accel, ignition::math::v4::Quaterniond orientation)
+        ignition::math::Vector3d BodyToNavFrame(ignition::math::v4::Vector3d accel, ignition::math::v4::Quaterniond orientation)
         {
-            double phi = orientation.Roll();
-            double theta = orientation.Pitch();
-            double psi = orientation.Yaw();
-
-            Eigen::Matrix3d R;
-            R << cos(theta) * cos(psi),
-                sin(phi) * sin(theta) * cos(psi) - cos(phi) * sin(psi),
-                sin(phi) * sin(psi) + cos(phi) * sin(theta) * cos(psi),
-                cos(theta) * sin(psi),
-                cos(phi) * cos(psi) + sin(phi) * sin(theta) * sin(psi),
-                cos(phi) * sin(theta) * sin(psi) - sin(phi) * cos(psi),
-                -sin(theta),
-                sin(phi) * cos(theta),
-                cos(phi) * cos(theta);
-
-            Eigen::Vector3d accelVec;
-            accelVec << accel.X(), accel.Y(), accel.Z();
-
-            Eigen::Vector3d g;
-            g << 0, 0, (-9.8);
-
-            Eigen::Vector3d accelNav = R * accelVec + g;
-            return std::tuple<double, double, double>(accelNav(0), accelNav(1), accelNav(2));
+            ignition::math::Vector3d accelNav = ignition::math::Quaterniond(M_PI, 0, 0).RotateVector(orientation.RotateVector(accel) + ignition::math::Vector3d(0, 0, 9.8));
+            return accelNav;
         }
 
         void LogState()
