@@ -70,8 +70,8 @@ namespace gazebo
         {
             B << (dt * dt) / 2, 0,
                 0, (dt * dt) / 2,
-                dt / 2, 0,
-                0, dt / 2;
+                dt, 0,
+                0, dt;
         }
 
         void initH(double dt)
@@ -90,8 +90,8 @@ namespace gazebo
 
         void initR()
         {
-            R << 0.01, 0,
-                0, 0.01;
+            R << 0.16, 0,
+                0, 0.16;
         }
 
         void initI()

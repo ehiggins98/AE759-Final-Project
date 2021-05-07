@@ -13,7 +13,7 @@ namespace gazebo
             this->model = model;
             this->transmitters = transmitters;
             this->generator = boost::shared_ptr<std::default_random_engine>(new std::default_random_engine());
-            this->distribution = boost::shared_ptr<std::normal_distribution<double>>(new std::normal_distribution<double>(0, 0.075));
+            this->distribution = boost::shared_ptr<std::normal_distribution<double>>(new std::normal_distribution<double>(0, 0.04));
         }
 
         std::unordered_map<std::string, double> Sample()
