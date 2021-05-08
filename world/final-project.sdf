@@ -110,13 +110,6 @@
       <pose>6 6 0.035 0 0 0</pose>
     </model>
 
-    <model name="qr_code_6_6">
-      <include>
-        <uri>model://qr_code_6_6</uri>
-      </include>
-      <pose>6 6 0.035 0 0 0</pose>
-    </model>
-
     <model name="qr_code_6_4">
       <include>
         <uri>model://qr_code_6_4</uri>
