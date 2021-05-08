@@ -40,25 +40,11 @@
       <pose>0 0 0.035 0 0 0</pose>
     </model>
 
-    <model name="qr_code_0_2">
-      <include>
-        <uri>model://qr_code_0_2</uri>
-      </include>
-      <pose>0 2 0.035 0 0 0</pose>
-    </model>
-
     <model name="qr_code_0_4">
       <include>
         <uri>model://qr_code_0_4</uri>
       </include>
       <pose>0 4 0.035 0 0 0</pose>
-    </model>
-
-    <model name="qr_code_0_6">
-      <include>
-        <uri>model://qr_code_0_6</uri>
-      </include>
-      <pose>0 6 0.035 0 0 0</pose>
     </model>
 
     <model name="qr_code_0_8">
@@ -68,25 +54,11 @@
       <pose>0 8 0.035 0 0 0</pose>
     </model>
 
-    <model name="qr_code_0_10">
-      <include>
-        <uri>model://qr_code_0_10</uri>
-      </include>
-      <pose>0 10 0.035 0 0 0</pose>
-    </model>
-
     <model name="qr_code_2_10">
       <include>
         <uri>model://qr_code_2_10</uri>
       </include>
       <pose>2 10 0.035 0 0 0</pose>
-    </model>
-
-    <model name="qr_code_4_10">
-      <include>
-        <uri>model://qr_code_4_10</uri>
-      </include>
-      <pose>4 10 0.035 0 0 0</pose>
     </model>
 
     <model name="qr_code_6_10">
@@ -96,25 +68,11 @@
       <pose>6 10 0.035 0 0 0</pose>
     </model>
 
-    <model name="qr_code_6_8">
-      <include>
-        <uri>model://qr_code_6_8</uri>
-      </include>
-      <pose>6 8 0.035 0 0 0</pose>
-    </model>
-
     <model name="qr_code_6_6">
       <include>
         <uri>model://qr_code_6_6</uri>
       </include>
       <pose>6 6 0.035 0 0 0</pose>
-    </model>
-
-    <model name="qr_code_6_4">
-      <include>
-        <uri>model://qr_code_6_4</uri>
-      </include>
-      <pose>6 4 0.035 0 0 0</pose>
     </model>
 
     <model name="qr_code_6_2">
@@ -124,25 +82,11 @@
       <pose>6 2 0.035 0 0 0</pose>
     </model>
 
-    <model name="qr_code_6_0">
-      <include>
-        <uri>model://qr_code_6_0</uri>
-      </include>
-      <pose>6 0 0.035 0 0 0</pose>
-    </model>
-
     <model name="qr_code_6_-2">
       <include>
         <uri>model://qr_code_6_-2</uri>
       </include>
       <pose>6 -2 0.035 0 0 0</pose>
-    </model>
-
-    <model name="qr_code_6_-4">
-      <include>
-        <uri>model://qr_code_6_-4</uri>
-      </include>
-      <pose>6 -4 0.035 0 0 0</pose>
     </model>
 
     <model name="qr_code_6_-6">
@@ -152,25 +96,11 @@
       <pose>6 -6 0.035 0 0 0</pose>
     </model>
 
-    <model name="qr_code_6_-8">
-      <include>
-        <uri>model://qr_code_6_-8</uri>
-      </include>
-      <pose>6 -8 0.035 0 0 0</pose>
-    </model>
-
     <model name="qr_code_6_-10">
       <include>
         <uri>model://qr_code_6_-10</uri>
       </include>
       <pose>6 -10 0.035 0 0 0</pose>
-    </model>
-
-    <model name="qr_code_4_-10">
-      <include>
-        <uri>model://qr_code_4_-10</uri>
-      </include>
-      <pose>4 -10 0.035 0 0 0</pose>
     </model>
 
     <model name="qr_code_2_-10">
@@ -180,32 +110,11 @@
       <pose>2 -10 0.035 0 0 0</pose>
     </model>
 
-    <model name="qr_code_0_-10">
-      <include>
-        <uri>model://qr_code_0_-10</uri>
-      </include>
-      <pose>0 -10 0.035 0 0 0</pose>
-    </model>
-
     <model name="qr_code_0_-8">
       <include>
         <uri>model://qr_code_0_-8</uri>
       </include>
       <pose>0 -8 0.035 0 0 0</pose>
-    </model>
-
-    <model name="qr_code_0_-6">
-      <include>
-        <uri>model://qr_code_0_-6</uri>
-      </include>
-      <pose>0 -6 0.035 0 0 0</pose>
-    </model>
-
-    <model name="qr_code_0_-4">
-      <include>
-        <uri>model://qr_code_0_-4</uri>
-      </include>
-      <pose>0 -4 0.035 0 0 0</pose>
     </model>
 
     <model name="qr_code_0_-2">

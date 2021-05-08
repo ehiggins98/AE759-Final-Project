@@ -13,6 +13,7 @@
 #include "./EKF.cpp"
 #include "./ArduPilotInterface.cpp"
 #include "./Logger.cpp"
+#include "./Camera.cpp"
 
 namespace gazebo
 {
@@ -56,10 +57,14 @@ namespace gazebo
         {
             std::string wirelessName = _sdf->Get("wirelessName", static_cast<std::string>("wireless_sensor")).first;
             std::string imuName = _sdf->Get("imuName", static_cast<std::string>("imu_sensor")).first;
+            std::string cameraName = _sdf->Get("cameraName", static_cast<std::string>("camera_sensor")).first;
+            std::string cameraTopic = _sdf->Get("cameraTopic", static_cast<std::string>("camera")).first;
 
             std::vector<std::string> wirelessScopedName = this->model->SensorScopedName(wirelessName);
             std::vector<std::string>
                 imuScopedName = this->model->SensorScopedName(imuName);
+            std::vector<std::string>
+                cameraScopedName = this->model->SensorScopedName(cameraName);
 
             if (wirelessScopedName.size() > 1)
             {
@@ -85,6 +90,13 @@ namespace gazebo
             {
                 this->imu = std::dynamic_pointer_cast<sensors::ImuSensor>(sensors::SensorManager::Instance()->GetSensor(imuScopedName[0]));
             }
+
+            sensors::CameraSensorPtr cameraSensor = std::dynamic_pointer_cast<sensors::CameraSensor>(sensors::SensorManager::Instance()->GetSensor(cameraScopedName[0]));
+
+            this->node = transport::NodePtr(new transport::Node());
+            node->Init();
+            this->subscriber = node->Subscribe(cameraSensor->Topic(), &FinalProjectPlugin::OnCameraUpdate, this);
+            this->camera = boost::shared_ptr<Camera>(new Camera(cameraSensor->ImageWidth(), cameraSensor->ImageHeight()));
         }
 
         std::unordered_map<std::string, physics::ModelPtr> LoadTransmitters(physics::ModelPtr model, sdf::ElementPtr sdf)
@@ -222,15 +234,31 @@ namespace gazebo
             }
         }
 
+        void OnCameraUpdate(ConstImageStampedPtr &msg)
+        {
+            common::Time curTime = model->GetWorld()->SimTime();
+            if (msg && curTime >= lastCameraTime + 1)
+            {
+                this->camera->ProcessImage(msg->image().data().c_str());
+                lastCameraTime = curTime;
+            }
+        }
+
         // Pointer to the model
     private:
         physics::ModelPtr model;
         event::ConnectionPtr updateConnection;
         sensors::ImuSensorPtr imu;
+        sensors::CameraSensorPtr cameraSensor;
+
+        transport::NodePtr node;
+        transport::SubscriberPtr subscriber;
+        boost::shared_ptr<Camera> camera;
 
         std::vector<Control> controls;
 
         common::Time lastUpdateTime;
+        common::Time lastCameraTime;
 
         boost::shared_ptr<SimWirelessReceiver> receiver;
         boost::shared_ptr<std::unordered_map<std::string, ignition::math::v4::Vector3d>> transmitterPositions;

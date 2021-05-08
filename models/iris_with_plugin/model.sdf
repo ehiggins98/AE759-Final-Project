@@ -196,6 +196,7 @@
       <imuName>iris_demo::iris::iris/imu_link::imu_sensor</imuName>
       <wirelessName>iris_demo::iris::iris/wireless_link::wireless_sensor</wirelessName>
       <cameraName>iris_demo::gimbal_small_2d::tilt_link::camera</cameraName>
+      <cameraTopic>/gazebo/default/iris_demo/iris_demo/gimbal_small_2d/tilt_link/camera/image</cameraTopic>
       <transmitter name="wireless_transmitter_1"></transmitter>
       <transmitter name="wireless_transmitter_2"></transmitter>
       <transmitter name="wireless_transmitter_3"></transmitter>
