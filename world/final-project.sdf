@@ -33,6 +33,195 @@
       </include>
     </model>
 
+    <model name="qr_code_0_0">
+      <include>
+        <uri>model://qr_code_0_0</uri>
+      </include>
+      <pose>0 0 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_2">
+      <include>
+        <uri>model://qr_code_0_2</uri>
+      </include>
+      <pose>0 2 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_4">
+      <include>
+        <uri>model://qr_code_0_4</uri>
+      </include>
+      <pose>0 4 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_6">
+      <include>
+        <uri>model://qr_code_0_6</uri>
+      </include>
+      <pose>0 6 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_8">
+      <include>
+        <uri>model://qr_code_0_8</uri>
+      </include>
+      <pose>0 8 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_10">
+      <include>
+        <uri>model://qr_code_0_10</uri>
+      </include>
+      <pose>0 10 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_2_10">
+      <include>
+        <uri>model://qr_code_2_10</uri>
+      </include>
+      <pose>2 10 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_4_10">
+      <include>
+        <uri>model://qr_code_4_10</uri>
+      </include>
+      <pose>4 10 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_10">
+      <include>
+        <uri>model://qr_code_6_10</uri>
+      </include>
+      <pose>6 10 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_8">
+      <include>
+        <uri>model://qr_code_6_8</uri>
+      </include>
+      <pose>6 8 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_6">
+      <include>
+        <uri>model://qr_code_6_6</uri>
+      </include>
+      <pose>6 6 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_6">
+      <include>
+        <uri>model://qr_code_6_6</uri>
+      </include>
+      <pose>6 6 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_4">
+      <include>
+        <uri>model://qr_code_6_4</uri>
+      </include>
+      <pose>6 4 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_2">
+      <include>
+        <uri>model://qr_code_6_2</uri>
+      </include>
+      <pose>6 2 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_0">
+      <include>
+        <uri>model://qr_code_6_0</uri>
+      </include>
+      <pose>6 0 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_-2">
+      <include>
+        <uri>model://qr_code_6_-2</uri>
+      </include>
+      <pose>6 -2 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_-4">
+      <include>
+        <uri>model://qr_code_6_-4</uri>
+      </include>
+      <pose>6 -4 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_-6">
+      <include>
+        <uri>model://qr_code_6_-6</uri>
+      </include>
+      <pose>6 -6 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_-8">
+      <include>
+        <uri>model://qr_code_6_-8</uri>
+      </include>
+      <pose>6 -8 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_6_-10">
+      <include>
+        <uri>model://qr_code_6_-10</uri>
+      </include>
+      <pose>6 -10 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_4_-10">
+      <include>
+        <uri>model://qr_code_4_-10</uri>
+      </include>
+      <pose>4 -10 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_2_-10">
+      <include>
+        <uri>model://qr_code_2_-10</uri>
+      </include>
+      <pose>2 -10 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_-10">
+      <include>
+        <uri>model://qr_code_0_-10</uri>
+      </include>
+      <pose>0 -10 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_-8">
+      <include>
+        <uri>model://qr_code_0_-8</uri>
+      </include>
+      <pose>0 -8 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_-6">
+      <include>
+        <uri>model://qr_code_0_-6</uri>
+      </include>
+      <pose>0 -6 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_-4">
+      <include>
+        <uri>model://qr_code_0_-4</uri>
+      </include>
+      <pose>0 -4 0.035 0 0 0</pose>
+    </model>
+
+    <model name="qr_code_0_-2">
+      <include>
+        <uri>model://qr_code_0_-2</uri>
+      </include>
+      <pose>0 -2 0.035 0 0 0</pose>
+    </model>
+
     <model name="aws_robomaker_warehouse_ShelfF_01_001">
       <include>
         <uri>model://aws_robomaker_warehouse_ShelfF_01</uri>
@@ -101,12 +290,12 @@
       </include>
       <pose frame="">0 0 -4 0 0 0</pose>
 	  </model>
-    <model name="aws_robomaker_warehouse_Bucket_01_020">
+    <!--<model name="aws_robomaker_warehouse_Bucket_01_020">
       <include>
         <uri>model://aws_robomaker_warehouse_Bucket_01</uri>
       </include>
       <pose frame="">0.433449 9.631706 0 0 0 -1.563161</pose>
-	  </model>
+	  </model>-->
 
     <model name="aws_robomaker_warehouse_Bucket_01_021">
       <include>
@@ -122,12 +311,12 @@
       <pose frame="">0.433449 8.59 0 0 0 -1.563161</pose>
 	  </model>
 
-    <model name='aws_robomaker_warehouse_ClutteringA_01_016'>
+    <!--<model name='aws_robomaker_warehouse_ClutteringA_01_016'>
       <include>
         <uri>model://aws_robomaker_warehouse_ClutteringA_01</uri>
       </include>
       <pose frame=''>5.708138 8.616844 -0.017477 0 0 0</pose>
-	  </model>
+	  </model>-->
 
     <model name='aws_robomaker_warehouse_ClutteringA_01_017'>
       <include>
@@ -150,19 +339,19 @@
       <pose frame="">3.324959 3.822449 -0.012064 0 0 1.563871</pose>
 	  </model>
 
-    <model name="aws_robomaker_warehouse_ClutteringC_01_028">
+    <!--<model name="aws_robomaker_warehouse_ClutteringC_01_028">
       <include>
         <uri>model://aws_robomaker_warehouse_ClutteringC_01</uri>
       </include>
       <pose frame="">5.54171 3.816475 -0.015663 0 0 -1.583191</pose>
-	  </model>
+	  </model>-->
 
-    <model name="aws_robomaker_warehouse_ClutteringC_01_029">
+    <!--<model name="aws_robomaker_warehouse_ClutteringC_01_029">
       <include>
         <uri>model://aws_robomaker_warehouse_ClutteringC_01</uri>
       </include>
       <pose frame="">5.384239 6.137154 0 0 0 3.150000</pose>
-	  </model>
+	  </model>-->
 
     <model name="aws_robomaker_warehouse_ClutteringC_01_030">
       <include>
