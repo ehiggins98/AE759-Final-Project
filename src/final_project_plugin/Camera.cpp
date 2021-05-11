@@ -76,19 +76,36 @@ namespace gazebo
                 std::vector<cv::Point> p = orderPoints(*itr);
                 std::vector<double> point;
 
-                cv::Mat qr = transform(gray, p);
+                std::pair<cv::Mat, cv::Mat> transformed = transform(gray, p);
+                cv::Mat qr = transformed.first;
+                cv::Mat M = transformed.second;
 
                 cv::Mat blurred;
                 cv::GaussianBlur(qr, blurred, cv::Size(3, 3), 3);
                 cv::addWeighted(qr, 1.25, blurred, -0.75, 0.0, qr);
 
-                std::string value = detector.detectAndDecode(qr);
-                if (value.length() > 0)
+                std::vector<cv::Point> qrPoints;
+                std::string value = detector.detectAndDecode(qr, qrPoints);
+                if (value.length() > 0 && qrPoints.size() == 4)
                 {
+                    std::vector<cv::Point> qrPointsTransformed;
+                    for (std::vector<cv::Point>::const_iterator itr = qrPoints.cbegin(), end = qrPoints.cend(); itr != end; itr++)
+                    {
+                        cv::Mat point(3, 1, cv::DataType<double>::type);
+                        point.at<double>(0) = itr->x;
+                        point.at<double>(1) = itr->y;
+                        point.at<double>(2) = 1;
+
+                        M.convertTo(M, cv::DataType<double>::type);
+                        cv::Mat transformed = M.inv() * point;
+                        qrPointsTransformed.push_back(cv::Point(transformed.at<double>(0) / transformed.at<double>(2), transformed.at<double>(1) / transformed.at<double>(2)));
+                    }
+
                     point = parseQrValue(value);
-                    std::tuple<double, double> pos = computePosEstimate(qr, p, point);
-                    cv::imwrite("orig" + std::to_string(i) + ".png", orig);
-                    cv::imwrite("qr" + std::to_string(i) + ".png", qr);
+
+                    qrPointsTransformed = orderPoints(qrPointsTransformed);
+
+                    std::tuple<double, double> pos = computePosEstimate(qr, qrPointsTransformed, point);
 
                     return new std::tuple<double, double, double>(std::get<0>(pos), std::get<1>(pos), i++);
                 }
@@ -134,7 +151,7 @@ namespace gazebo
                 {
                     argmax = i;
                 }
-                else if (argmin < 0 || norms.at(i) < norms.at(argmin))
+                if (argmin < 0 || norms.at(i) < norms.at(argmin))
                 {
                     argmin = i;
                 }
@@ -152,7 +169,7 @@ namespace gazebo
                 {
                     diffArgmax = i;
                 }
-                else if (used.find(i) == used.end() && (diffArgmin < 0 || diffs.at(i) > diffs.at(diffArgmin)))
+                if (used.find(i) == used.end() && (diffArgmin < 0 || diffs.at(i) < diffs.at(diffArgmin)))
                 {
                     diffArgmin = i;
                 }
@@ -190,7 +207,7 @@ namespace gazebo
             return norms;
         }
 
-        cv::Mat transform(cv::Mat img, std::vector<cv::Point> pts)
+        std::pair<cv::Mat, cv::Mat> transform(cv::Mat img, std::vector<cv::Point> pts)
         {
             cv::Point tl = pts.at(0);
             cv::Point tr = pts.at(1);
@@ -221,7 +238,7 @@ namespace gazebo
             cv::Mat warped;
             cv::warpPerspective(img, warped, M, cv::Size(maxWidth, maxHeight));
 
-            return warped;
+            return std::pair<cv::Mat, cv::Mat>(warped, M);
         }
 
         std::string tryRotate(cv::Mat img)
@@ -281,7 +298,8 @@ namespace gazebo
                 orderedImagePoints.push_back(cv::Point2d(p.x, p.y));
             }
 
-            double qrDim = 1.0;
+            // qr images are 1m x 1m, and the QR code itself is 0.84m x 0.84m
+            double qrDim = 0.84;
             std::vector<cv::Point3d> orderedWorldPoints;
             orderedWorldPoints.push_back(cv::Point3d(center.at(0) + qrDim / 2, center.at(1) - qrDim / 2, 0));
             orderedWorldPoints.push_back(cv::Point3d(center.at(0) - qrDim / 2, center.at(1) - qrDim / 2, 0));
@@ -331,13 +349,6 @@ namespace gazebo
             }
 
             std::sort(filtered.begin(), filtered.end(), comparator);
-
-            std::vector<std::vector<cv::Point>> test;
-            for (int i = filtered.size() - 1; i >= std::max(0, (int)filtered.size() - 3); i--)
-            {
-                std::cout << filtered.at(i).second << std::endl;
-                test.push_back(filtered.at(i).first);
-            }
 
             std::vector<cv::Point> centers;
             for (int i = filtered.size() - 1; i >= std::max(0, (int)filtered.size() - 3); i--)

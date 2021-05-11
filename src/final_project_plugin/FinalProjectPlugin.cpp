@@ -242,7 +242,8 @@ namespace gazebo
                 std::tuple<double, double, double> *position = this->camera->ProcessImage(msg->image().data().c_str());
                 if (position != nullptr)
                 {
-                    gzmsg << std::get<2>(*position) << "\n" << std::get<0>(*position) << " " << std::get<1>(*position) << "\n"
+                    gzmsg << std::get<2>(*position) << "\n"
+                          << std::get<0>(*position) << " " << std::get<1>(*position) << "\n"
                           << model->WorldPose().Pos().X() << " " << model->WorldPose().Pos().Y() << "\n\n";
                 }
                 lastCameraTime = curTime;
