@@ -103,9 +103,15 @@ namespace gazebo
 
                     point = parseQrValue(value);
 
-                    qrPointsTransformed = orderPoints(qrPointsTransformed);
+                    for (auto itr = qrPointsTransformed.cbegin(), end = qrPointsTransformed.cend(); itr != end; itr++)
+                    {
+                        std::cout << itr->x << " " << itr->y << "\n";
+                    }
 
                     std::tuple<double, double> pos = computePosEstimate(qr, qrPointsTransformed, point);
+
+                    cv::imwrite("orig" + std::to_string(i) + ".png", orig);
+                    cv::imwrite("qr" + std::to_string(i) + ".png", qr);
 
                     return new std::tuple<double, double, double>(std::get<0>(pos), std::get<1>(pos), i++);
                 }
@@ -241,144 +247,33 @@ namespace gazebo
             return std::pair<cv::Mat, cv::Mat>(warped, M);
         }
 
-        std::string tryRotate(cv::Mat img)
-        {
-            int w = img.cols;
-            int h = img.rows;
-
-            for (int i = 1; i <= 3; i++)
-            {
-                int angle = i * 90;
-
-                cv::Mat rotated;
-                cv::Mat M = cv::getRotationMatrix2D(cv::Point2f(w / 2, h / 2), angle, 1.0);
-                cv::warpAffine(img, rotated, M, cv::Size(w, h));
-
-                std::string value = detector.detectAndDecode(rotated);
-                if (value.length() > 0)
-                {
-                    return value;
-                }
-            }
-
-            return "";
-        }
-
         std::tuple<double, double> computePosEstimate(cv::Mat qr, std::vector<cv::Point> corners, std::vector<double> center)
         {
-            std::vector<std::pair<cv::Point, cv::Point>> squares = getQrSquares(qr, corners);
-
-            int noSquare;
-            for (int i = 0; i < corners.size(); i++)
-            {
-                bool found = false;
-
-                for (std::vector<std::pair<cv::Point, cv::Point>>::const_iterator itr = squares.cbegin(), end = squares.cend(); itr != end; itr++)
-                {
-                    if (itr->first.x == corners.at(i).x && itr->first.y == corners.at(i).y)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
-                {
-                    noSquare = i;
-                    break;
-                }
-            }
-
-            std::vector<cv::Point2d>
-                orderedImagePoints;
-            orderedImagePoints.push_back(corners.at(noSquare));
-            for (int i = 1; i < 4; i++)
-            {
-                cv::Point p = corners.at((noSquare + i) % 4);
-                orderedImagePoints.push_back(cv::Point2d(p.x, p.y));
-            }
-
             // qr images are 1m x 1m, and the QR code itself is 0.84m x 0.84m
             double qrDim = 0.84;
             std::vector<cv::Point3d> orderedWorldPoints;
-            orderedWorldPoints.push_back(cv::Point3d(center.at(0) + qrDim / 2, center.at(1) - qrDim / 2, 0));
-            orderedWorldPoints.push_back(cv::Point3d(center.at(0) - qrDim / 2, center.at(1) - qrDim / 2, 0));
             orderedWorldPoints.push_back(cv::Point3d(center.at(0) - qrDim / 2, center.at(1) + qrDim / 2, 0));
             orderedWorldPoints.push_back(cv::Point3d(center.at(0) + qrDim / 2, center.at(1) + qrDim / 2, 0));
+            orderedWorldPoints.push_back(cv::Point3d(center.at(0) + qrDim / 2, center.at(1) - qrDim / 2, 0));
+            orderedWorldPoints.push_back(cv::Point3d(center.at(0) - qrDim / 2, center.at(1) - qrDim / 2, 0));
 
             int data[9] = {277, 0, 960, 0, 277, 540, 0, 0, 1};
             cv::Mat intrinsicMatrix(3, 3, cv::DataType<int>::type, &data);
 
+            std::vector<cv::Point2d> orderedImagePoints;
+            for (std::vector<cv::Point>::const_iterator itr = corners.cbegin(), end = corners.cend(); itr != end; itr++)
+            {
+                orderedImagePoints.push_back(cv::Point2d(itr->x, itr->y));
+            }
+
             cv::Mat rotation;
             cv::Mat position;
+            std::cout << orderedWorldPoints.size() << " " << orderedImagePoints.size() << "\n";
             cv::solvePnP(orderedWorldPoints, orderedImagePoints, intrinsicMatrix, std::vector<double>(), rotation, position, false);
 
             position = transformPosition(rotation, position);
 
             return std::tuple<double, double>(position.at<double>(0), position.at<double>(1));
-        }
-
-        std::vector<std::pair<cv::Point, cv::Point>> getQrSquares(cv::Mat qr, std::vector<cv::Point> corners)
-        {
-            double w = qr.rows;
-            double h = qr.cols;
-
-            std::vector<std::pair<cv::Point, cv::Point>> croppedToImageCorners;
-            croppedToImageCorners.push_back(std::pair<cv::Point, cv::Point>(cv::Point(0, 0), corners.at(0)));
-            croppedToImageCorners.push_back(std::pair<cv::Point, cv::Point>(cv::Point(w - 1, 0), corners.at(1)));
-            croppedToImageCorners.push_back(std::pair<cv::Point, cv::Point>(cv::Point(w - 1, h - 1), corners.at(2)));
-            croppedToImageCorners.push_back(std::pair<cv::Point, cv::Point>(cv::Point(0, h - 1), corners.at(3)));
-
-            std::vector<std::vector<cv::Point>>
-                contours;
-            std::vector<cv::Vec4i> hierarchy;
-            cv::findContours(qr, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
-
-            std::vector<std::pair<std::vector<cv::Point>, double>> filtered;
-
-            for (std::vector<std::vector<cv::Point>>::const_iterator itr = contours.cbegin(), end = contours.cend(); itr != end; itr++)
-            {
-                cv::RotatedRect rect = cv::minAreaRect(*itr);
-                double aspectRatio = std::min(rect.size.width, rect.size.height) == 0 ? 0 : std::max(rect.size.width, rect.size.height) / std::min(rect.size.width, rect.size.height);
-
-                double area = cv::contourArea(*itr);
-                if (area > 50 && area < 600 && aspectRatio > 0.5 && aspectRatio < 1.5)
-                {
-                    filtered.push_back(std::pair<std::vector<cv::Point>, double>(*itr, area));
-                }
-            }
-
-            std::sort(filtered.begin(), filtered.end(), comparator);
-
-            std::vector<cv::Point> centers;
-            for (int i = filtered.size() - 1; i >= std::max(0, (int)filtered.size() - 3); i--)
-            {
-                cv::Rect rect = cv::boundingRect(filtered.at(i).first);
-                int cx = rect.x + rect.width / 2;
-                int cy = rect.y + rect.y / 2;
-
-                centers.push_back(cv::Point(cx, cy));
-            }
-
-            std::vector<std::pair<cv::Point, cv::Point>> mappings;
-            for (std::vector<cv::Point>::const_iterator itr = centers.cbegin(), end = centers.cend(); itr != end; itr++)
-            {
-                int argmin = -1;
-                double min = -1;
-                for (int i = 0; i < croppedToImageCorners.size(); i++)
-                {
-                    double dist = this->dist(croppedToImageCorners.at(i).first, *itr);
-                    if (argmin < 0 || dist < min)
-                    {
-                        argmin = i;
-                        min = dist;
-                    }
-                }
-
-                mappings.push_back(std::pair<cv::Point, cv::Point>(croppedToImageCorners.at(argmin).second, *itr));
-            }
-
-            return mappings;
         }
 
         static bool comparator(std::pair<std::vector<cv::Point>, double> a, std::pair<std::vector<cv::Point>, double> b)
