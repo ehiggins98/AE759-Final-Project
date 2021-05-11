@@ -237,9 +237,14 @@ namespace gazebo
         void OnCameraUpdate(ConstImageStampedPtr &msg)
         {
             common::Time curTime = model->GetWorld()->SimTime();
-            if (msg && curTime >= lastCameraTime + 1)
+            if (msg && curTime >= lastCameraTime + 0.5)
             {
-                this->camera->ProcessImage(msg->image().data().c_str());
+                std::tuple<double, double, double> *position = this->camera->ProcessImage(msg->image().data().c_str());
+                if (position != nullptr)
+                {
+                    gzmsg << std::get<2>(*position) << "\n" << std::get<0>(*position) << " " << std::get<1>(*position) << "\n"
+                          << model->WorldPose().Pos().X() << " " << model->WorldPose().Pos().Y() << "\n\n";
+                }
                 lastCameraTime = curTime;
             }
         }

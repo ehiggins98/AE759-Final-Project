@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <sdf version="1.4">
-    <model name="qr_code_0_-2">
+    <model name="qr_code_0_-3">
         <static>true</static>
         <link name="link">
             <collision name="collision">
                 <geometry>
                     <plane>
                         <normal>0 0 1</normal>
-                        <size>0.5 0.5</size>
+                        <size>1 1</size>
                     </plane>
                 </geometry>
                 <surface>
@@ -27,14 +27,14 @@
                 <geometry>
                     <plane>
                         <normal>0 0 1</normal>
-                        <size>0.5 0.5</size>
+                        <size>1 1</size>
                     </plane>
                 </geometry>
                 <material>
                     <script>
-                        <uri>model://qr_code_0_-2/materials/scripts/</uri>
-                        <uri>model://qr_code_0_-2/materials/textures/</uri>
-                        <name>QrCode0-2/Image</name>
+                        <uri>model://qr_code_0_-3/materials/scripts/</uri>
+                        <uri>model://qr_code_0_-3/materials/textures/</uri>
+                        <name>QrCode0-3/Image</name>
                     </script>
                 </material>
             </visual>

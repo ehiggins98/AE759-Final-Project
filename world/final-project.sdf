@@ -40,11 +40,11 @@
       <pose>0 0 0.035 0 0 0</pose>
     </model>
 
-    <model name="qr_code_0_4">
+    <model name="qr_code_0_3">
       <include>
-        <uri>model://qr_code_0_4</uri>
+        <uri>model://qr_code_0_3</uri>
       </include>
-      <pose>0 4 0.035 0 0 0</pose>
+      <pose>0 3 0.035 0 0 0</pose>
     </model>
 
     <model name="qr_code_0_8">
@@ -117,11 +117,11 @@
       <pose>0 -8 0.035 0 0 0</pose>
     </model>
 
-    <model name="qr_code_0_-2">
+    <model name="qr_code_0_-3">
       <include>
-        <uri>model://qr_code_0_-2</uri>
+        <uri>model://qr_code_0_-3</uri>
       </include>
-      <pose>0 -2 0.035 0 0 0</pose>
+      <pose>0 -3 0.035 0 0 0</pose>
     </model>
 
     <model name="aws_robomaker_warehouse_ShelfF_01_001">

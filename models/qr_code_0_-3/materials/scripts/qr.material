@@ -1,4 +1,4 @@
-material QrCode04/Image
+material QrCode0-3/Image
 {
     technique
     {
@@ -9,7 +9,7 @@ material QrCode04/Image
             specular 0.0 0.0 0.0 1.0 0.5
             texture_unit
             {
-                texture qr_0_4.png
+                texture qr_0_-3.png
                 filtering trilinear
             }
         }
