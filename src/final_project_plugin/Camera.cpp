@@ -103,15 +103,7 @@ namespace gazebo
 
                     point = parseQrValue(value);
 
-                    for (auto itr = qrPointsTransformed.cbegin(), end = qrPointsTransformed.cend(); itr != end; itr++)
-                    {
-                        std::cout << itr->x << " " << itr->y << "\n";
-                    }
-
                     std::tuple<double, double> pos = computePosEstimate(qr, qrPointsTransformed, point);
-
-                    cv::imwrite("orig" + std::to_string(i) + ".png", orig);
-                    cv::imwrite("qr" + std::to_string(i) + ".png", qr);
 
                     return new std::tuple<double, double, double>(std::get<0>(pos), std::get<1>(pos), i++);
                 }
@@ -268,8 +260,7 @@ namespace gazebo
 
             cv::Mat rotation;
             cv::Mat position;
-            std::cout << orderedWorldPoints.size() << " " << orderedImagePoints.size() << "\n";
-            cv::solvePnP(orderedWorldPoints, orderedImagePoints, intrinsicMatrix, std::vector<double>(), rotation, position, false);
+            cv::solvePnP(orderedWorldPoints, orderedImagePoints, intrinsicMatrix, std::vector<double>(), rotation, position, false, cv::SOLVEPNP_IPPE);
 
             position = transformPosition(rotation, position);
 

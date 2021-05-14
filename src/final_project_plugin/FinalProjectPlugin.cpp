@@ -1,5 +1,7 @@
+#include <chrono>
 #include <math.h>
 #include <mutex>
+#include <thread>
 
 #include <Eigen/Dense>
 #include <gazebo/common/common.hh>
@@ -25,6 +27,10 @@ namespace gazebo
             // Store the pointer to the model
             this->model = _parent;
 
+            ignition::math::v4::Pose3d pose = model->WorldPose();
+            cameraLocation = std::tuple<double, double>(0, 0);
+            ekf = boost::shared_ptr<EKF>(new EKF(pose.Pos().X(), pose.Pos().Y(), 0, 0, false));
+
             // Listen to the update event. This event is broadcast every
             // simulation iteration.
             this->updateConnection = event::Events::ConnectWorldUpdateBegin(
@@ -32,9 +38,6 @@ namespace gazebo
 
             LoadSensors(_parent, _sdf);
             LoadControl(_parent, _sdf->GetElement("control"));
-
-            ignition::math::v4::Pose3d pose = model->WorldPose();
-            ekf = boost::shared_ptr<EKF>(new EKF(pose.Pos().X(), pose.Pos().Y(), 0, 0));
 
             arduPilotInterface = boost::shared_ptr<ArduPilotInterface>(new ArduPilotInterface(_sdf));
 
@@ -95,7 +98,7 @@ namespace gazebo
 
             this->node = transport::NodePtr(new transport::Node());
             node->Init();
-            this->subscriber = node->Subscribe(cameraSensor->Topic(), &FinalProjectPlugin::OnCameraUpdate, this);
+            // this->subscriber = node->Subscribe(cameraSensor->Topic(), &FinalProjectPlugin::OnCameraUpdate, this);
             this->camera = boost::shared_ptr<Camera>(new Camera(cameraSensor->ImageWidth(), cameraSensor->ImageHeight()));
         }
 
@@ -135,6 +138,12 @@ namespace gazebo
             std::lock_guard<std::mutex> lock(mutex);
             common::Time curTime = model->GetWorld()->SimTime();
 
+            if (curTime - lastUwbTime >= 0.1)
+            {
+                UpdateUwbLocation();
+                lastUwbTime = curTime;
+            }
+
             if (curTime >= lastUpdateTime)
             {
                 std::vector<float> commands = arduPilotInterface->ReceiveMotorCommands();
@@ -143,10 +152,8 @@ namespace gazebo
                 {
                     controls[i].ApplyCommand(commands[i], (curTime - lastUpdateTime).Double());
                 }
-
-                std::tuple<double, double> loc = UwbLocation();
                 ignition::math::Vector3d accel = BodyToNavFrame(imu->LinearAcceleration(), imu->Orientation());
-                ekf->Update(std::get<0>(loc), std::get<1>(loc), accel.X(), accel.Y(), (curTime - lastUpdateTime).Double());
+                ekf->Update(std::get<0>(uwbLocation), std::get<1>(uwbLocation), accel.X(), accel.Y(), (curTime - lastUpdateTime).Double());
                 EKFState ekfState = ekf->GetState();
 
                 const ignition::math::Pose3d gazeboXYZToModelXForwardZDown =
@@ -176,7 +183,7 @@ namespace gazebo
             }
         }
 
-        std::tuple<double, double> UwbLocation()
+        void UpdateUwbLocation()
         {
             std::unordered_map<std::string, double> distances = receiver->Sample();
 
@@ -200,7 +207,7 @@ namespace gazebo
             }
 
             Eigen::Vector2d uavPos = (H.transpose() * H).inverse() * H.transpose() * z;
-            return std::tuple<double, double>(uavPos(0), uavPos(1));
+            uwbLocation = std::tuple<double, double>(uavPos(0), uavPos(1));
         }
 
         ignition::math::Vector3d BodyToNavFrame(ignition::math::v4::Vector3d accel, ignition::math::v4::Quaterniond orientation)
@@ -237,16 +244,24 @@ namespace gazebo
         void OnCameraUpdate(ConstImageStampedPtr &msg)
         {
             common::Time curTime = model->GetWorld()->SimTime();
-            if (msg && curTime >= lastCameraTime + 0.5)
+            if (msg && curTime >= lastCameraTime + 0.250)
             {
-                std::tuple<double, double, double> *position = this->camera->ProcessImage(msg->image().data().c_str());
-                if (position != nullptr)
-                {
-                    gzmsg << std::get<2>(*position) << "\n"
-                          << std::get<0>(*position) << " " << std::get<1>(*position) << "\n"
-                          << model->WorldPose().Pos().X() << " " << model->WorldPose().Pos().Y() << "\n\n";
-                }
+                std::thread t(&FinalProjectPlugin::ProcessCameraInput, this, msg);
+                t.detach();
                 lastCameraTime = curTime;
+            }
+        }
+
+        void ProcessCameraInput(ConstImageStampedPtr &msg)
+        {
+            std::chrono::milliseconds start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+            std::tuple<double, double, double> *position = camera->ProcessImage(msg->image().data().c_str());
+            if (position != nullptr)
+            {
+                std::chrono::milliseconds end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+                std::cout << (end - start).count() << std::endl;
+                std::cout << std::get<0>(*position) << " " << std::get<1>(*position) << " " << model->WorldPose().Pos().X() << " " << model->WorldPose().Pos().Y() << std::endl;
+                cameraLocation = std::tuple<double, double>(std::get<0>(*position), std::get<1>(*position));
             }
         }
 
@@ -265,6 +280,10 @@ namespace gazebo
 
         common::Time lastUpdateTime;
         common::Time lastCameraTime;
+        common::Time lastUwbTime;
+
+        std::tuple<double, double> uwbLocation;
+        std::tuple<double, double> cameraLocation;
 
         boost::shared_ptr<SimWirelessReceiver> receiver;
         boost::shared_ptr<std::unordered_map<std::string, ignition::math::v4::Vector3d>> transmitterPositions;
